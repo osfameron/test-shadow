@@ -77,7 +77,7 @@ sub shadow {
     reap {
         return if $uninstalled;
         if (my $expected_in = $shadow_params{in}) {
-            $tb->ok(! $uninstalled, "$class->$method parameters as expected"); 
+            $tb->ok(1, "$class->$method parameters as expected"); 
         }
         if (my $expected_count = $shadow_params{calls}) {
             $tb->is_num($$count, $expected_count, "$class->$method call count as expected ($expected_count)"); 
