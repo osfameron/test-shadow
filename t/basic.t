@@ -21,21 +21,21 @@ use Test::Shadow;
 
 package main;
 subtest "input and count" => sub {
-    shadow Foo => inner => (
+    with_shadowed Foo => inner => {
         in => [ any(1,2,3) ],
         calls => 3,
-    );
-
-    Foo->outer;
+    }, sub {
+        Foo->outer;
+    };
 };
 
 subtest "change output" => sub {
-    shadow Foo => inner => (
+    with_shadowed Foo => inner => {
         out => 'haha',
         calls => 1,
-    );
-
-    is (Foo->outer, 'eeek');
+    }, sub {
+        is (Foo->outer, 'eeek');
+    };
 };
 
 done_testing;
