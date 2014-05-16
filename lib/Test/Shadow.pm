@@ -41,7 +41,7 @@ sub shadow {
     my $tb = __PACKAGE__->builder;
     my $orig = $class->can($method) or die "$class has no such method $method";
 
-    my $count = do { my $count = 0; \$count };
+    my $count = 0;
     my $uninstalled;
     my $uninstall = sub {
         return if $uninstalled++;
@@ -52,7 +52,7 @@ sub shadow {
     };
 
     install_modifier $class, 'around', $method, sub {
-        $$count++;
+        $count++;
         my $orig = shift;
         my ($self, @args) = @_;
 
@@ -60,7 +60,7 @@ sub shadow {
             my $got = (ref $expected_in eq 'HASH') ? { @args } : \@args;
             my ($ok, $stack) = cmp_details($got, $expected_in);
             if (!$ok) {
-                $tb->ok(0, sprintf '%s->%s unexpected parameters on call no. %d', $class, $method, $$count);
+                $tb->ok(0, sprintf '%s->%s unexpected parameters on call no. %d', $class, $method, $count);
                 $tb->diag( deep_diag($stack) );
                 $tb->diag( '(Uninstalling wrapper)' );
                 $uninstall->();
@@ -80,7 +80,7 @@ sub shadow {
             $tb->ok(1, "$class->$method parameters as expected"); 
         }
         if (my $expected_count = $shadow_params{calls}) {
-            $tb->is_num($$count, $expected_count, "$class->$method call count as expected ($expected_count)"); 
+            $tb->is_num($count, $expected_count, "$class->$method call count as expected ($expected_count)"); 
         }
         $uninstall->();
     } SCOPE(1);
