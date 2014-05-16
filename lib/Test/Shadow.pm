@@ -5,8 +5,7 @@ use strict; use warnings;
 use parent 'Test::Builder::Module';
 use Test::Deep::NoTest qw(deep_diag cmp_details);
 
-use Scope::Upper qw(reap SCOPE);
-use Class::Method::Modifiers 'install_modifier';
+use Scope::Upper qw(reap localize SCOPE);
 
 our @EXPORT = qw( shadow );
 
@@ -42,18 +41,10 @@ sub shadow {
     my $orig = $class->can($method) or die "$class has no such method $method";
 
     my $count = 0;
-    my $uninstalled;
-    my $uninstall = sub {
-        return if $uninstalled++;
-        no warnings 'redefine';
-        no strict 'refs';
-        *{"${class}::${method}"} = $orig;
-        delete $Class::Method::Modifiers::MODIFIER_CACHE{$class}{$method};
-    };
+    my $disabled;
 
-    install_modifier $class, 'around', $method, sub {
+    my $wrapped = sub {
         $count++;
-        my $orig = shift;
         my ($self, @args) = @_;
 
         if (my $expected_in = $shadow_params{in}) {
@@ -62,11 +53,11 @@ sub shadow {
             if (!$ok) {
                 $tb->ok(0, sprintf '%s->%s unexpected parameters on call no. %d', $class, $method, $count);
                 $tb->diag( deep_diag($stack) );
-                $tb->diag( '(Uninstalling wrapper)' );
-                $uninstall->();
+                $tb->diag( '(Disabling wrapper)' );
+                $disabled++;
             }
         }
-        if (!$uninstalled and my $stubbed_out = $shadow_params{out}) {
+        if (!$disabled and my $stubbed_out = $shadow_params{out}) {
             return $stubbed_out;
         }
         else {
@@ -75,15 +66,19 @@ sub shadow {
     };
 
     reap {
-        return if $uninstalled;
+        return if $disabled;
         if (my $expected_in = $shadow_params{in}) {
             $tb->ok(1, "$class->$method parameters as expected"); 
         }
         if (my $expected_count = $shadow_params{calls}) {
             $tb->is_num($count, $expected_count, "$class->$method call count as expected ($expected_count)"); 
         }
-        $uninstall->();
     } SCOPE(1);
+
+    no strict 'refs';
+    no warnings 'redefine';
+    localize *{"${class}::${method}"}, $wrapped, SCOPE(1);
+
 }
 
 1;
