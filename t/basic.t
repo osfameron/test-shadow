@@ -17,25 +17,46 @@ use Test::Shadow;
     sub inner {
         return "inner";
     }
+    sub hashy {
+        my ($class, %args) = @_;
+        return 'hashy';
+    }
 }
 
 package main;
-subtest "input and count" => sub {
-    with_shadowed Foo => inner => {
+subtest "input, Test::Deep, and count" => sub {
+    with_shadow Foo => inner => {
         in => [ any(1,2,3) ],
-        calls => 3,
+        count => 3,
     }, sub {
         Foo->outer;
     };
 };
 
 subtest "change output" => sub {
-    with_shadowed Foo => inner => {
+    with_shadow Foo => inner => {
         out => 'haha',
-        calls => 1,
+        count => 1,
     }, sub {
         is (Foo->outer, 'eeek');
     };
 };
 
+subtest "Multiple" => sub {
+    with_shadow 
+        Foo => inner => { out => 'one' },
+        Foo => hashy => { out => 'two' },
+    sub {
+        is (Foo->inner, 'one');
+        is (Foo->hashy, 'two');
+    };
+};
+
+subtest "Hash ref" => sub {
+    with_shadow 
+        Foo => hashy => { in => { foo => 1, bar => 2 } },
+    sub {
+        Foo->hashy( foo => 1, bar => 2 );
+    };
+};
 done_testing;
