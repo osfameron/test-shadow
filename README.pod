@@ -1,0 +1,77 @@
+=head1 NAME
+
+Test::Shadow - override a class's methods in a scope, checking input/output
+
+=head1 SYNOPSIS
+
+Provides RSpec-like mocking with 'receive'/'and_return' functionality.
+
+    use Test::More;
+    use Test::Shadow;
+
+    use Foo;
+
+    with_shadow Foo => inner_method => {
+        in => [ 'list', 'of', 'parameters' ],
+        out => 'barry',
+        count => 3
+    }, sub {
+        my $foo = Foo->new;
+        $foo->outer_method();
+    };
+
+=head1 DETAILS
+
+One function is provided:
+
+=head2 C<with_shadow $class1 =&gt; $method1 =&gt; $args1, ..., $callback>
+
+Each supplied class/method is overridden as per the specification in the
+supplied args.  Finally, the callback is run with that specification.
+
+The args passed are as follows:
+
+=over 4
+
+=item in
+
+A list of parameters to compare every call of the method against.  This will be
+checked each time, until the first failure, if any.  The parameters can be
+supplied as an arrayref:
+
+    in => [ 'list', 'of', 'parameters' ]
+
+or a hashref:
+
+    in => { key => 'value', key2 => 'value2 },
+
+and the comparison may be made using any of the extended routines in L<Test::Deep>
+
+    use Test::Deep;
+    with_shadow Foo => inner_method => {
+        in => { foo => any(1,2,3) },
+        ...
+
+=item out
+
+Stub the return value.
+
+=item count
+
+The number of times you expect the method to be called.  This is checked at the end
+of the callback scope.
+
+=back
+
+
+=cut
+
+=head1 AUTHOR and LICENSE
+
+Copyright 2014 Hakim Cassimally <osfameron@cpan.org>
+
+This module is released under the same terms as Perl.
+
+
+=cut
+
