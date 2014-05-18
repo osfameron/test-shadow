@@ -4,6 +4,8 @@ NAME
 
 SYNOPSIS
     Provides RSpec-like mocking with 'receive'/'and_return' functionality.
+    However the interface is more explicit. This may be considered a
+    feature.
 
         use Test::More;
         use Test::Shadow;
@@ -22,7 +24,7 @@ SYNOPSIS
 DETAILS
     One function is provided:
 
-  "with_shadow $class1 =&gt; $method1 =&gt; $args1, ..., $callback"
+  "with_shadow $class1 => $method1 => $args1, ..., $callback"
     Each supplied class/method is overridden as per the specification in the
     supplied args. Finally, the callback is run with that specification.
 

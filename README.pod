@@ -4,7 +4,8 @@ Test::Shadow - override a class's methods in a scope, checking input/output
 
 =head1 SYNOPSIS
 
-Provides RSpec-like mocking with 'receive'/'and_return' functionality.
+Provides RSpec-like mocking with 'receive'/'and_return' functionality.  However
+the interface is more explicit.  This may be considered a feature.
 
     use Test::More;
     use Test::Shadow;
@@ -24,7 +25,7 @@ Provides RSpec-like mocking with 'receive'/'and_return' functionality.
 
 One function is provided:
 
-=head2 C<with_shadow $class1 =&gt; $method1 =&gt; $args1, ..., $callback>
+=head2 C<with_shadow $class1 =E<gt> $method1 =E<gt> $args1, ..., $callback>
 
 Each supplied class/method is overridden as per the specification in the
 supplied args.  Finally, the callback is run with that specification.

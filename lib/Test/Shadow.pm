@@ -35,7 +35,7 @@ the interface is more explicit.  This may be considered a feature.
 
 One function is provided:
 
-=head2 C<with_shadow $class1 E<gt> $method1 E<gt> $args1, ..., $callback>
+=head2 C<with_shadow $class1 =E<gt> $method1 =E<gt> $args1, ..., $callback>
 
 Each supplied class/method is overridden as per the specification in the
 supplied args.  Finally, the callback is run with that specification.
