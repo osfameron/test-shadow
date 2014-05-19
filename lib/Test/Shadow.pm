@@ -4,8 +4,10 @@ use strict; use warnings;
 
 use parent 'Test::Builder::Module';
 use Test::Deep::NoTest qw(deep_diag cmp_details);
+use Scalar::Util 'reftype';
 
-our @EXPORT = qw( with_shadow );
+our @EXPORT    = qw( with_shadow );
+our @EXPORT_OK = qw( iterate );
 our $VERSION = 0.0101;
 
 =head1 NAME
@@ -65,7 +67,41 @@ and the comparison may be made using any of the extended routines in L<Test::Dee
 
 =item out
 
-Stub the return value.
+Stub the return value.  This can be
+
+=over 4
+
+=item *
+
+a simple (non-reference) scalar value
+
+    ...
+    out => 100,
+
+=item *
+
+a subroutine ref, which will be passed at every invocation the parameters C<($orig, $self, @args)>.
+
+=back
+
+Note that the subroutine args are the same as if you were creating a L<Moose>
+or L<Class::Method::Modifiers> C<around> wrapper, but dynamically scoped to the test.
+
+    out => sub { my ($orig, $self, @args) = @_; ... },
+
+If you want to return a reference (including a subroutine reference) return this from the
+subroutine: We require wrapping in a subroutine ref for the same reason that Moose's
+C<default> does: otherwise we would end up passing the same reference to each invocation,
+with possibly surprising results.
+
+    out => sub { [] }, # return a new, empty arrayref on each invocation
+
+Of course you can simply ignore the call args and invoke as a subroutine.  We provide
+a helper method to iterate over a number of scalar return values:
+
+    use Test::Shadow 'iterate';
+    ...
+    out => iterate(1,2,3,4), # return 1 on first invocation, 2 on second, etc.
 
 =item count
 
@@ -114,6 +150,11 @@ sub mk_subs {
     my $count = 0;
     my $failed;
 
+    my $stubbed_out = $shadow_params->{out};
+    if (ref $stubbed_out) {
+        die "out is not a code ref!" unless reftype $stubbed_out eq 'CODE';
+    }
+
     my $wrapped = sub {
         $count++;
         my ($self, @args) = @_;
@@ -128,10 +169,11 @@ sub mk_subs {
                 $failed++;
             }
         }
-        if (my $stubbed_out = $shadow_params->{out}) {
+        if ($stubbed_out) {
             # we use stub even if test has failed, as otherwise we risk calling
             # mocked service unnecessarily
-            return $stubbed_out;
+
+            return stubbed($stubbed_out, $orig, $self, @args);
         }
         else {
             return $self->$orig(@args);
@@ -158,6 +200,25 @@ sub mk_subs {
         }
     };
     return ($wrapped, $reap);
+}
+
+sub stubbed {
+    my ($stubbed_out, $orig, $self, @args) = @_;
+    if (ref $stubbed_out) {
+        return $stubbed_out->($orig, $self, @args);
+    }
+    else {
+        return $stubbed_out;
+    }
+}
+
+sub iterate {
+    my @array = my @orig_array = @_;
+    return sub {
+        my ($orig, $self, @args) = @_;
+        @array = @orig_array unless @array;
+        return stubbed((shift @array), $orig, $self, @args);
+    };
 }
 
 =head1 AUTHOR and LICENSE

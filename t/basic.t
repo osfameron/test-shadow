@@ -69,4 +69,15 @@ subtest "minmax" => sub {
     };
 };
 
+subtest "iterate" => sub {
+    with_shadow 
+        Foo => hashy => { out => Test::Shadow::iterate(1,2,3) },
+    sub {
+        is(Foo->hashy(), 1, 'iterate 1');
+        is(Foo->hashy(), 2, 'iterate 2');
+        is(Foo->hashy(), 3, 'iterate 3');
+        is(Foo->hashy(), 1, 'iterate back to 1');
+    };
+};
+
 done_testing;
