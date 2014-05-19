@@ -59,4 +59,14 @@ subtest "Hash ref" => sub {
         Foo->hashy( foo => 1, bar => 2 );
     };
 };
+
+subtest "minmax" => sub {
+    with_shadow 
+        Foo => hashy => { count => { min => 1, max => 3 } },
+    sub {
+        Foo->hashy();
+        Foo->hashy();
+    };
+};
+
 done_testing;

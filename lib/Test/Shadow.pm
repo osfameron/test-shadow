@@ -72,6 +72,14 @@ Stub the return value.
 The number of times you expect the method to be called.  This is checked at the end
 of the callback scope.
 
+This may be an exact value:
+
+    count => 4,
+
+Or a hashref with one or both of C<min> and C<max> declared:
+
+    count => { min => 5, max => 10 },
+
 =back
 
 =cut
@@ -135,7 +143,18 @@ sub mk_subs {
             $tb->ok(1, "$class->$method parameters as expected"); 
         }
         if (my $expected_count = $shadow_params->{count}) {
-            $tb->is_num($count, $expected_count, "$class->$method call count as expected ($expected_count)"); 
+            if (ref $expected_count) {
+                if (my $min = $expected_count->{min}) {
+                    $tb->ok($count >= $min, "$class->$method call count >= $min");
+                }
+                if (my $max = $expected_count->{max}) {
+                    $tb->ok($count <= $max, "$class->$method call count <= $max");
+                }
+            }
+            else {
+                $tb->is_num($count, $expected_count, 
+                    "$class->$method call count as expected ($expected_count)"); 
+            }
         }
     };
     return ($wrapped, $reap);
