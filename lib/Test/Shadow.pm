@@ -8,7 +8,7 @@ use Scalar::Util 'reftype';
 
 our @EXPORT    = qw( with_shadow );
 our @EXPORT_OK = qw( iterate );
-our $VERSION = 0.0101;
+our $VERSION = 0.02;
 
 =head1 NAME
 
@@ -220,6 +220,47 @@ sub iterate {
         return stubbed((shift @array), $orig, $self, @args);
     };
 }
+
+=head1 SEE ALSO
+
+There are several other modules that deal with mocking objects.  One of them may well
+serve your needs better.  I was having RSpec envy, about the call expectation side of
+things (not about the "English-like" DSL, which I found both confusing, and slightly
+filthy) so Test::Shadow is designed to cover that use case with an API that is less
+magical and more Perlish (thanks to ribasushi, haarg, tobyink, vincent, ether on
+#perl-qa for pointing out that my first implementation with the lovely-but-frightening
+L<Scope::Upper> may not have been the poster child for sanity I'd intended.)
+
+=over 4
+
+=item *
+
+L<Test::MockObject> is the oldest CPAN library I'm aware of.  It has a very different
+usage, where you create an I<object instance> and stub methods on it, rather
+than mocking a class.
+
+=item *
+
+L<Test::MockModule> does mock a class's methods, but hasn't been updated since 2005,
+and doesn't give the control over return value stubbing and call count tracing.
+
+=item *
+
+L<Mock::Quick> looks like a more modern mocking implementation.  Again, it looks like
+this works on an object instance.
+
+=item *
+
+L<Test::Spec> looks like a good reimplementation of RSpec, which means that
+personally I dislike aspects of the API -- the monkey-patching and the
+confusing C<expects> and C<returns> keywords, but this may be a good choice.
+Note that the ::Mocks routines are "currently only usable from within tests
+built with the Test::Spec BDD* framework".  
+
+=back
+
+* my current (snarky) understanding is that "BDD" means something to do with
+using C<it> and C<describe> as synonyms for C<subtest>.
 
 =head1 AUTHOR and LICENSE
 
