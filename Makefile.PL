@@ -11,5 +11,8 @@ author      'osfameron';
 requires 'Test::More';
 requires 'Test::Deep';
 
+test_requires 'Test::Fatal';
+test_requires 'Test::Tester';
+
 auto_install;
 WriteAll;
