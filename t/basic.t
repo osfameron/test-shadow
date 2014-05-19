@@ -21,6 +21,10 @@ use Test::Shadow;
         my ($class, %args) = @_;
         return 'hashy';
     }
+    sub transform {
+        my ($class, $arg) = @_;
+        return lc $arg;
+    }
 }
 
 package main;
@@ -77,6 +81,34 @@ subtest "iterate" => sub {
         is(Foo->hashy(), 2, 'iterate 2');
         is(Foo->hashy(), 3, 'iterate 3');
         is(Foo->hashy(), 1, 'iterate back to 1');
+    };
+};
+
+subtest "out method" => sub {
+    with_shadow 
+        Foo => transform => { 
+            out => sub { my ($orig, $self, $arg) = @_; $self->$orig($arg) x 2 },
+        },
+    sub {
+        is(Foo->transform('heLLo'), 'hellohello', 'delegate and transform');
+    }
+};
+
+subtest "iterate methods" => sub {
+    with_shadow 
+        Foo => transform => { 
+            out => Test::Shadow::iterate(
+                sub { my ($orig, $self, $arg) = @_; uc $arg },
+                sub { my ($orig, $self, $arg) = @_; $self->$orig($arg) },
+                'override',
+                sub { my ($orig, $self, $arg) = @_; $self->$orig($arg) x 2 },
+            ) 
+        },
+    sub {
+        is(Foo->transform('heLLo'), 'HELLO', 'override uc');
+        is(Foo->transform('heLLo'), 'hello', 'delegate $orig');
+        is(Foo->transform('heLLo'), 'override', 'override completely');
+        is(Foo->transform('heLLo'), 'hellohello', 'delegate and transform');
     };
 };
 
