@@ -21,10 +21,12 @@ SYNOPSIS
             $foo->outer_method();
         };
 
-DETAILS
-    One function is provided:
+EXPORTED FUNCTIONS
+  with_shadow
+    Exported by default
 
-  "with_shadow $class1 => $method1 => $args1, ..., $callback"
+        with_shadow $class1 => $method1 => $args1, ..., $callback;
+
     Each supplied class/method is overridden as per the specification in the
     supplied args. Finally, the callback is run with that specification.
 
@@ -73,12 +75,7 @@ DETAILS
             out => sub { [] }, # return a new, empty arrayref on each invocation
 
         Of course you can simply ignore the call args and invoke as a
-        subroutine. We provide a helper method to iterate over a number of
-        scalar return values:
-
-            use Test::Shadow 'iterate';
-            ...
-            out => iterate(1,2,3,4), # return 1 on first invocation, 2 on second, etc.
+        subroutine. See also the "iterate" function.
 
     count
         The number of times you expect the method to be called. This is
@@ -91,6 +88,28 @@ DETAILS
         Or a hashref with one or both of "min" and "max" declared:
 
             count => { min => 5, max => 10 },
+
+  iterate
+    We provide a helper function to iterate over a number of scalar return
+    values. This can be attached to "out", and takes a list of values to be
+    provided as the stubbed return value on each successive call.
+
+        use Test::Shadow 'iterate';
+
+        with_shadow ...
+            out => iterate(1,2,3,4), # return 1 on first invocation, 2 on second, etc.
+            ...
+
+    The values wrap if they run out: you may want to use a "count" argument
+    to diagnose that this has happened.
+
+    As well as simple values, "iterate" handles method calls in exactly the
+    same format as they are normally passed to "out".
+
+        with_shadow ...
+            out => iterate(
+                sub { my ($orig, $self, $arg) = @_; ... },
+                ...
 
 SEE ALSO
     There are several other modules that deal with mocking objects. One of

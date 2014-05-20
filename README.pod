@@ -21,11 +21,13 @@ the interface is more explicit.  This may be considered a feature.
         $foo->outer_method();
     };
 
-=head1 DETAILS
+=head1 EXPORTED FUNCTIONS
 
-One function is provided:
+=head2 with_shadow
 
-=head2 C<with_shadow $class1 =E<gt> $method1 =E<gt> $args1, ..., $callback>
+Exported by default
+
+    with_shadow $class1 => $method1 => $args1, ..., $callback;
 
 Each supplied class/method is overridden as per the specification in the
 supplied args.  Finally, the callback is run with that specification.
@@ -84,12 +86,8 @@ with possibly surprising results.
 
     out => sub { [] }, # return a new, empty arrayref on each invocation
 
-Of course you can simply ignore the call args and invoke as a subroutine.  We provide
-a helper method to iterate over a number of scalar return values:
-
-    use Test::Shadow 'iterate';
-    ...
-    out => iterate(1,2,3,4), # return 1 on first invocation, 2 on second, etc.
+Of course you can simply ignore the call args and invoke as a subroutine.  See also
+the L</iterate> function.
 
 =item count
 
@@ -105,6 +103,29 @@ Or a hashref with one or both of C<min> and C<max> declared:
     count => { min => 5, max => 10 },
 
 =back
+
+=head2 iterate
+
+We provide a helper function to iterate over a number of scalar return values.  This
+can be attached to C<out>, and takes a list of values to be provided as the stubbed
+return value on each successive call.
+
+    use Test::Shadow 'iterate';
+
+    with_shadow ...
+        out => iterate(1,2,3,4), # return 1 on first invocation, 2 on second, etc.
+        ...
+
+The values wrap if they run out: you may want to use a C<count> argument to
+diagnose that this has happened.
+
+As well as simple values, C<iterate> handles method calls in exactly the same format
+as they are normally passed to C<out>.
+
+    with_shadow ...
+        out => iterate(
+            sub { my ($orig, $self, $arg) = @_; ... },
+            ...
 
 
 =cut
