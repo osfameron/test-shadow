@@ -8,7 +8,7 @@ use Scalar::Util 'reftype';
 
 our @EXPORT    = qw( with_shadow );
 our @EXPORT_OK = qw( iterate );
-our $VERSION = 0.02;
+our $VERSION = 0.0201;
 
 =head1 NAME
 
